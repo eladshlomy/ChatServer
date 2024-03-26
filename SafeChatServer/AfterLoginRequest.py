@@ -2,4 +2,7 @@ import IRequestHandler
 
 
 class AfterLoginRequest(IRequestHandler.IRequestHandler):
-    pass
+    def _sign_out(self, buffer):
+        pass
+
+

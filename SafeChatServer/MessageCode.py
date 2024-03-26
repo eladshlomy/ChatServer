@@ -1,5 +1,7 @@
 import enum
 
+MESSAGE_CODE_FIELD_SIZE = 1
+
 
 class MessageCode(enum):
     LOGIN = 200

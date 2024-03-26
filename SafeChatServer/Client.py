@@ -1,6 +1,6 @@
 import socket
 import LoginRequest
-from MessageCode import MessageCode
+import MessageCode
 import ServerError
 
 """
@@ -8,8 +8,8 @@ message protocol:
      4 bytes     |     1 BYTE     |
    MESSAGE_SIZE  |  MESSAGE_CODE  |     DATA    |
 """
+
 MESSAGE_SIZE_FIELD_SIZE = 4  # MESSAGE_SIZE field size (4 bytes)
-MESSAGE_CODE_FIELD_SIZE = 1
 
 
 class Client:
@@ -29,14 +29,19 @@ class Client:
 
                 except ServerError.ServerError as error:
                     # send the error message to the client
-                    self._send_response(MessageCode.SERVER_ERROR.to_bytes(MESSAGE_CODE_FIELD_SIZE) +
-                                        str(error).encode())
+                    self._send_response(
+                        MessageCode.MessageCode.SERVER_ERROR.to_bytes(MessageCode.MESSAGE_CODE_FIELD_SIZE) +
+                        str(error).encode())
 
-        except (ValueError, socket.error):
-            print("Client disconnected")
+        except socket.error as e:
+            print(e)
 
     def _receive_request(self) -> bytes:
-        size = int.from_bytes(self._socket.recv(MESSAGE_SIZE_FIELD_SIZE))
+        data = self._socket.recv(MESSAGE_SIZE_FIELD_SIZE)
+        if not data:  # in case that the client disconnect the bytes will be empty
+            raise socket.error("Client disconnected")
+
+        size = int.from_bytes(data)
         request = self._socket.recv(size)  # receive the whole request
         return request
 

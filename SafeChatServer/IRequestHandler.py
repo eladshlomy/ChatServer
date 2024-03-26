@@ -20,3 +20,14 @@ class IRequestHandler:
         return self.handle_dictionary[code](data)
 
     handle_dictionary = {}
+
+
+# to avoid circular import
+def create_login_handler():
+    from LoginRequest import LoginRequest
+    return LoginRequest()
+
+
+def create_after_login_handler():
+    from AfterLoginRequest import AfterLoginRequest
+    return AfterLoginRequest()
