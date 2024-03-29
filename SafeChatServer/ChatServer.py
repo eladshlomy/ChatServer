@@ -2,11 +2,14 @@ import socket
 import Client
 import threading
 
+import DataBaseManager
+
 PORT = 8282
 
 
 class ChatServer:
     def __init__(self, port=PORT):
+        self._database = DataBaseManager.DataBaseManager()
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # define TCP server socket
         self._sock.bind(('', port))  # bind the server to the listening socket
 
@@ -19,7 +22,7 @@ class ChatServer:
             client_socket, client_address = self._sock.accept()
             print("A client accepted")
 
-            client = Client.Client(client_socket)
+            client = Client.Client(client_socket, self._database)
 
             client_thread = threading.Thread(target=client.handle, args=(client, ))
             client_thread.daemon = True

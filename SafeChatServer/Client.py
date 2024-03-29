@@ -1,4 +1,6 @@
 import socket
+
+import DataBaseManager
 import LoginRequest
 import MessageCode
 import ServerError
@@ -13,9 +15,9 @@ MESSAGE_SIZE_FIELD_SIZE = 4  # MESSAGE_SIZE field size (4 bytes)
 
 
 class Client:
-    def __init__(self, client_sock: socket.socket):
+    def __init__(self, client_sock: socket.socket, database: DataBaseManager.DataBaseManager):
         self._socket = client_sock
-        self._handler = LoginRequest.LoginRequest()
+        self._handler = LoginRequest.LoginRequest(database)
 
     def handle(self):
         try:

@@ -21,11 +21,16 @@ class DataBaseManager:
 
         self._connection.commit()  # commit the command
 
-    def add_user(self, username, hashed_password, email):
-        self._cursor.execute("INSERT INTO ? (?, ?, ?) VALUES ('?', ?, '?');",
-                             (USERS, USERNAME, HASHED_PASSWORD, EMAIL,
-                              username, hashed_password, email))
-        self._connection.commit()
+    def add_user(self, username: str, hashed_password: bytes, email: str):
+        try:
+            self._cursor.execute("INSERT INTO ? (?, ?, ?) VALUES ('?', ?, '?');",
+                                 (USERS, USERNAME, HASHED_PASSWORD, EMAIL,
+                                  username, sqlite3.Binary(hashed_password), email))
+            self._connection.commit()
+            return True
+
+        except sqlite3.IntegrityError:  # when the user already exist
+            return False
 
     def find_user(self, username):
         self._cursor.execute("SELECT * FROM ? WHERE ? = ?;", (USERS, USERNAME, username))

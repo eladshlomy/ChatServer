@@ -1,10 +1,11 @@
+import DataBaseManager
 import ServerError
 from MessageCode import MessageCode
 
 
 class IRequestHandler:
-    def __init__(self):
-        pass
+    def __init__(self, database_manager: DataBaseManager.DataBaseManager):
+        self._db = database_manager
 
     @staticmethod
     def _split_code_and_data(buffer: bytes) -> type[MessageCode, bytes]:
@@ -23,11 +24,11 @@ class IRequestHandler:
 
 
 # to avoid circular import
-def create_login_handler():
+def create_login_handler(database: DataBaseManager.DataBaseManager):
     from LoginRequest import LoginRequest
-    return LoginRequest()
+    return LoginRequest(database)
 
 
-def create_after_login_handler():
+def create_after_login_handler(database: DataBaseManager.DataBaseManager, username):
     from AfterLoginRequest import AfterLoginRequest
     return AfterLoginRequest()
