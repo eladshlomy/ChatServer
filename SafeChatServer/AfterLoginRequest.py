@@ -9,8 +9,9 @@ class AfterLoginRequest(IRequestHandler.IRequestHandler):
         super().__init__(database_manager)
         self._username = username
 
-    def _sign_out(self, buffer):
+    def _sign_out(self, buffer: bytes):
         return (IRequestHandler.create_login_handler(self._db),
-                Serializer.Serializer.binary_response(MessageCode.MessageCode.LOG_OUT, True))
+                Serializer.Serializer.binary_response(MessageCode.MessageCode.SIGN_OUT, True))
 
+    handle_dictionary = {MessageCode.MessageCode.SIGN_OUT: _sign_out, }
 
