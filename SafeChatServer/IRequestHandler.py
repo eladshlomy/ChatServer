@@ -18,7 +18,7 @@ class IRequestHandler:
         code, data = IRequestHandler._split_code_and_data(request_buffer)
         if not self._is_relevant(code):
             raise ServerError.ServerError("Request not relevant")
-        return self.handle_dictionary[code](data)
+        return self.handle_dictionary[code](self, data)
 
     handle_dictionary = {}
 
@@ -31,4 +31,4 @@ def create_login_handler(database: DataBaseManager.DataBaseManager):
 
 def create_after_login_handler(database: DataBaseManager.DataBaseManager, username):
     from AfterLoginRequest import AfterLoginRequest
-    return AfterLoginRequest()
+    return AfterLoginRequest(database, username)

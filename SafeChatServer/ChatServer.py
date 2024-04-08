@@ -24,7 +24,7 @@ class ChatServer:
 
             client = Client.Client(client_socket, self._database)
 
-            client_thread = threading.Thread(target=client.handle, args=(client, ))
+            client_thread = threading.Thread(target=client.handle)
             client_thread.daemon = True
             client_thread.start()
 

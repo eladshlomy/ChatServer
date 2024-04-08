@@ -21,7 +21,7 @@ class Deserializer:
     @staticmethod
     def _collect_field(buffer: bytes):
         size = int.from_bytes(buffer[:SIZE_FIELD_BYTES_SIZE])
-        field = buffer[SIZE_FIELD_BYTES_SIZE: SIZE_FIELD_BYTES_SIZE + size]
+        field = buffer[SIZE_FIELD_BYTES_SIZE: SIZE_FIELD_BYTES_SIZE + size].decode()
         buffer = buffer[SIZE_FIELD_BYTES_SIZE + size:]
         return field, buffer
 
@@ -29,7 +29,7 @@ class Deserializer:
     def _collect_all_fields(buffer: bytes) -> list:
         fields = []
 
-        while not buffer:
+        while buffer:
             field, buffer = Deserializer._collect_field(buffer)
             fields.append(field)
 

@@ -2,7 +2,7 @@ import socket
 
 import DataBaseManager
 import LoginRequest
-import MessageCode
+from MessageCode import MessageCode
 import ServerError
 
 """
@@ -32,7 +32,7 @@ class Client:
                 except ServerError.ServerError as error:
                     # send the error message to the client
                     self._send_response(
-                        MessageCode.MessageCode.SERVER_ERROR.to_bytes(MessageCode.MESSAGE_CODE_FIELD_SIZE) +
+                        MessageCode.SERVER_ERROR.to_bytes() +
                         str(error).encode())
 
         except socket.error as e:

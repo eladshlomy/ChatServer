@@ -10,6 +10,7 @@ class AfterLoginRequest(IRequestHandler.IRequestHandler):
         self._username = username
 
     def _sign_out(self, buffer: bytes):
+        print("Client sign out!")
         return (IRequestHandler.create_login_handler(self._db),
                 Serializer.Serializer.binary_response(MessageCode.MessageCode.SIGN_OUT, True))
 
