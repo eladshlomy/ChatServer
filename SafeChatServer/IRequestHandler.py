@@ -32,3 +32,8 @@ def create_login_handler(database: DataBaseManager.DataBaseManager):
 def create_after_login_handler(database: DataBaseManager.DataBaseManager, username):
     from AfterLoginRequest import AfterLoginRequest
     return AfterLoginRequest(database, username)
+
+
+def create_sending_message_handler(database: DataBaseManager.DataBaseManager, from_user: str, to_user: str):
+    from SendingMessageHandler import SendingMessageHandler
+    return SendingMessageHandler(database, from_user, to_user)

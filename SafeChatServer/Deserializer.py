@@ -19,6 +19,11 @@ class Deserializer:
         return username, password, email
 
     @staticmethod
+    def send_message_req_deserialize(buffer: bytes):
+        to_user, buffer = Deserializer._collect_field(buffer)  # collect the receiving username
+        return to_user
+
+    @staticmethod
     def _collect_field(buffer: bytes):
         size = int.from_bytes(buffer[:SIZE_FIELD_BYTES_SIZE])
         field = buffer[SIZE_FIELD_BYTES_SIZE: SIZE_FIELD_BYTES_SIZE + size].decode()

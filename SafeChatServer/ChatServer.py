@@ -28,7 +28,3 @@ class ChatServer:
             client_thread.daemon = True
             client_thread.start()
 
-
-if __name__ == '__main__':
-    server = ChatServer()
-    server.serve()

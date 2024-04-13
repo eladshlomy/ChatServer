@@ -17,8 +17,16 @@ class Serializer:
         return MessageCode.SIGN_OUT.to_bytes()
 
     @staticmethod
-    def serialize_send_message(to: str, message: str):
-        pass
+    def serialize_send_message_req(to: str):
+        return MessageCode.SEND_MESSAGE_REQ.to_bytes() + Serializer._create_string_field(to)
+
+    @staticmethod
+    def serialize_sending_message(message_chunk: str):
+        return MessageCode.MESSAGE_SENDING.to_bytes() + message_chunk.encode()
+
+    @staticmethod
+    def serialize_end_message():
+        return MessageCode.END_MESSAGE.to_bytes()
 
     @staticmethod
     def serialize_get_update(from_date):

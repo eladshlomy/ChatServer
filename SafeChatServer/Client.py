@@ -48,5 +48,6 @@ class Client:
         return request
 
     def _send_response(self, buffer: bytes):
-        size = len(buffer).to_bytes(MESSAGE_SIZE_FIELD_SIZE)
-        self._socket.send(size + buffer)
+        if buffer:
+            size = len(buffer).to_bytes(MESSAGE_SIZE_FIELD_SIZE)
+            self._socket.send(size + buffer)

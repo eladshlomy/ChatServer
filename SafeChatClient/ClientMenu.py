@@ -6,7 +6,7 @@ from Serializer import Serializer
 
 SERVER_PORT = 8282
 MESSAGE_SIZE_FIELD_SIZE = 4
-
+MESSAGE_CHUNK_SIZE = 1024
 
 # before login menu
 LOG_IN = 1
@@ -14,7 +14,8 @@ SIGN_UP = 2
 
 
 # after login menu
-LOG_OUT = 1
+SEND_MESSAGE = 1
+LOG_OUT = 2
 
 
 class ClientMenu:
@@ -23,10 +24,12 @@ class ClientMenu:
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock.connect(('127.0.0.1', SERVER_PORT))
         self._logged_in = False
+        self._username = ""
 
     def print_menu(self):
         if self._logged_in:
             print(f"{LOG_OUT} - LOG OUT")
+            print(f"{SEND_MESSAGE} - SEND_MESSAGE")
 
         else:
             print(f"{LOG_IN} - LOG IN")
@@ -36,12 +39,18 @@ class ClientMenu:
         if self._logged_in:
             if choice == LOG_OUT:
                 self.logout()
+            elif choice == SEND_MESSAGE:
+                self.send_message()
+            else:
+                print("Invalid choice, try again")
 
         else:
             if choice == SIGN_UP:
                 self.sign_up()
             elif choice == LOG_IN:
                 self.login()
+            else:
+                print("Invalid choice, try again")
 
     def sign_up(self):
         username = input("Please enter your username: ")
@@ -57,6 +66,7 @@ class ClientMenu:
             if Deserializer.deserialize_binary_response(response):
                 print("Sign up successfully!")
                 self._logged_in = True
+                self._username = username
             else:
                 print("sign up went wrong")
 
@@ -77,6 +87,7 @@ class ClientMenu:
             if Deserializer.deserialize_binary_response(response):
                 print("Log in successfully!")
                 self._logged_in = True
+                self._username = username
             else:
                 print("Log in went wrong")
 
@@ -100,7 +111,28 @@ class ClientMenu:
             print(response)
 
     def send_message(self):
-        pass
+        destination = input("Please enter the username you would like to send a message to: ")
+        self._send_request(Serializer.serialize_send_message_req(destination))
+
+        code, response = self._receive_response()
+        response = Deserializer.deserialize_binary_response(response)
+
+        if code == MessageCode.MessageCode.SEND_MESSAGE_REQ and response:
+            message = input("Please enter the message: ")
+
+            # split the message into chunks and send each chunk to the server
+            for i in range(0, len(message), MESSAGE_CHUNK_SIZE):
+                self._send_request(Serializer.serialize_sending_message(message[i: i + MESSAGE_CHUNK_SIZE]))
+
+            self._send_request(Serializer.serialize_end_message())
+
+            code, response = self._receive_response()
+            response = Deserializer.deserialize_binary_response(response)
+
+            if response:
+                print("Message were send successfully!")
+            else:
+                print("Something went wrong while sending the message")
 
     def get_new_messages(self):
         pass
