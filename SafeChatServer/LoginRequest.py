@@ -1,13 +1,13 @@
-import Deserializer
+from Deserializer import Deserializer
 import IRequestHandler
-import MessageCode
+from MessageCode import MessageCode
 from hashlib import md5
-import Serializer
+from Serializer import Serializer
 
 
 class LoginRequest(IRequestHandler.IRequestHandler):
     def _login(self, buffer: bytes):
-        username, passw = Deserializer.Deserializer.login_deserialize(buffer)
+        username, passw = Deserializer.login_deserialize(buffer)
         hash_passw = md5(passw.encode()).digest()  # hash the password
 
         user_data = self._db.find_user(username)
@@ -21,7 +21,7 @@ class LoginRequest(IRequestHandler.IRequestHandler):
         else:
             print("No such user")
 
-        response_buffer = Serializer.Serializer.binary_response(MessageCode.MessageCode.LOGIN, res)
+        response_buffer = Serializer.binary_response(MessageCode.LOGIN, res)
         new_handler = self if not res else IRequestHandler.create_after_login_handler(self._db, username)
 
         if res:
@@ -30,11 +30,11 @@ class LoginRequest(IRequestHandler.IRequestHandler):
         return new_handler, response_buffer
 
     def _sign_up(self, buffer: bytes):
-        username, passw, email = Deserializer.Deserializer.signup_deserialize(buffer)
+        username, passw, email = Deserializer.signup_deserialize(buffer)
         passw = md5(passw.encode())  # hash the password
 
         res = self._db.add_user(username, passw.digest(), email)  # add the user into the database
-        response_buffer = Serializer.Serializer.binary_response(MessageCode.MessageCode.SIGN_UP, res)
+        response_buffer = Serializer.binary_response(MessageCode.SIGN_UP, res)
         new_handler = self if not res else IRequestHandler.create_after_login_handler(self._db, username)
 
         if res:
@@ -42,5 +42,5 @@ class LoginRequest(IRequestHandler.IRequestHandler):
 
         return new_handler, response_buffer
 
-    handle_dictionary = {MessageCode.MessageCode.LOGIN: _login,
-                         MessageCode.MessageCode.SIGN_UP: _sign_up}
+    handle_dictionary = {MessageCode.LOGIN: _login,
+                         MessageCode.SIGN_UP: _sign_up}

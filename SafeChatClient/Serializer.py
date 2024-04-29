@@ -29,6 +29,10 @@ class Serializer:
         return MessageCode.END_MESSAGE.to_bytes()
 
     @staticmethod
+    def serialize_cancel_message():
+        return MessageCode.CANCEL_MESSAGE.to_bytes()
+
+    @staticmethod
     def serialize_get_update(from_date):
         pass
 

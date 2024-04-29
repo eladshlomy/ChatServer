@@ -78,14 +78,18 @@ class DataBaseManager:
         self._cursor.execute(f"SELECT * FROM {USERS} WHERE {USERNAME} = ?;", (username,))
         return bool(self._cursor.fetchall())  # check if the result list is empty
 
-    def add_message(self, from_user_id: int, to_user_id: int, encrypted_message: bytes):
+    def add_message(self, from_user: str, to_user: str, encrypted_message: bytes):
         """
         Add a message to the database
-        :param from_user_id:
-        :param to_user_id:
+        **The function assume that the users exist**
+        :param from_user:
+        :param to_user:
         :param encrypted_message:
         :return:
         """
+
+        from_user_id = self._get_user_id(from_user)
+        to_user_id = self._get_user_id(to_user)
 
         # add the message with the current datetime (in UTC - Coordinated Universal Time)
         self._cursor.execute(f"INSERT INTO {MESSAGES} ({FROM}, {TO}, {ENCRYPTED_MESSAGE}, {DATE})"
@@ -93,7 +97,7 @@ class DataBaseManager:
                              (from_user_id, to_user_id, encrypted_message))
         self._connection.commit()
 
-    def get_user_id(self, username: str) -> int:
+    def _get_user_id(self, username: str) -> int:
         """
         The function returns the id of specific username
         Assume that the user exist
@@ -104,16 +108,19 @@ class DataBaseManager:
         self._cursor.execute(F"SELECT {ID} FROM {USERS} WHERE {USERNAME} = ?;", (username,))
         return int(self._cursor.fetchone()[0])  # raise IndexError if user is not exist
 
-    def get_all_messages_after(self, to_user_id: int, after_date: datetime.datetime):
+    def get_all_messages_since(self, to_user: str, after_date: datetime.datetime):
         """
         Get update of the new messages of specific user
         **The function assume that the user exist**
-        :param to_user_id: the destination of the message
+        :param to_user: the destination of the message
         :param after_date: the last updated date
-        :return: list of all the messages after this date
+        :return: list of all the messages after this date [ID(int), FROM(int), TO(int), ENCRYPTED_MESSAGE(bytes), DATE(string)]
         """
 
-        self._cursor.execute(f"SELECT {ID}, {FROM}, {ENCRYPTED_MESSAGE}, {DATE} FROM {MESSAGES} "
-                             f"WHERE {TO} = ? AND datetime({DATE}) >= datetime(?);",
-                             (to_user_id, str(after_date)))
+        to_user_id = self._get_user_id(to_user)
+
+        self._cursor.execute(
+            f"SELECT * FROM {MESSAGES}"
+            f"WHERE ({FROM} = ? OR {TO} = ?) AND datetime({DATE}) >= datetime(?);",
+            (to_user_id, to_user_id, str(after_date)))
         return self._cursor.fetchall()
