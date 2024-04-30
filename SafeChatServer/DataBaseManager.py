@@ -69,7 +69,7 @@ class DataBaseManager:
             print(e)
             return False
 
-    def find_user(self, username: str):
+    def find_user(self, username: str) -> tuple[str, bytes, str] or None:
         self._cursor.execute(f"SELECT {USERNAME}, {HASHED_PASSWORD}, {EMAIL} FROM {USERS} WHERE {USERNAME} = ?;",
                              (username,))
         return self._cursor.fetchone()  # fetch a tuple (username, hashed_password, email) (without the ID)
