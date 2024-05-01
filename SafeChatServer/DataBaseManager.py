@@ -4,7 +4,7 @@ import datetime
 DB_NAME = "ChatServerDB.sqlite"
 
 USERS = "USERS"
-MESSAGES = "MESSAGES"
+MESSAGES_FOR_OFFLINE_USERS = "MESSAGES"
 
 USERNAME = "USERNAME"
 HASHED_PASSWORD = "HASHED_PASSWORD"
@@ -49,7 +49,7 @@ class DataBaseManager:
 
         # create the messages table
         self._cursor.execute(
-            f"CREATE TABLE IF NOT EXISTS {MESSAGES} ({ID} INTEGER PRIMARY KEY AUTOINCREMENT"
+            f"CREATE TABLE IF NOT EXISTS {MESSAGES_FOR_OFFLINE_USERS} ({ID} INTEGER PRIMARY KEY AUTOINCREMENT"
             f", {FROM} INTEGER NOT NULL, {TO} INTEGER NOT NULL"
             f", {ENCRYPTED_MESSAGE} BLOB NOT NULL, {DATE} TEXT NOT NULL"
             f", FOREIGN KEY({FROM}) REFERENCES {USERS}({ID})"
@@ -92,7 +92,7 @@ class DataBaseManager:
         to_user_id = self._get_user_id(to_user)
 
         # add the message with the current datetime (in UTC - Coordinated Universal Time)
-        self._cursor.execute(f"INSERT INTO {MESSAGES} ({FROM}, {TO}, {ENCRYPTED_MESSAGE}, {DATE})"
+        self._cursor.execute(f"INSERT INTO {MESSAGES_FOR_OFFLINE_USERS} ({FROM}, {TO}, {ENCRYPTED_MESSAGE}, {DATE})"
                              f" VALUES (?, ?, ?, datetime(\"now\"));",
                              (from_user_id, to_user_id, encrypted_message))
         self._connection.commit()
@@ -120,7 +120,7 @@ class DataBaseManager:
         to_user_id = self._get_user_id(to_user)
 
         self._cursor.execute(
-            f"SELECT * FROM {MESSAGES}"
+            f"SELECT * FROM {MESSAGES_FOR_OFFLINE_USERS}"
             f"WHERE ({FROM} = ? OR {TO} = ?) AND datetime({DATE}) >= datetime(?);",
             (to_user_id, to_user_id, str(after_date)))
         return self._cursor.fetchall()

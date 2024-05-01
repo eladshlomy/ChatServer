@@ -2,12 +2,15 @@ import DataBaseManager
 from LoginManager import LoginManager
 import ServerError
 from MessageCode import MessageCode
+from HandlerFactory import HandlerFactory
 
 
 class IRequestHandler:
+    handlers_factory = HandlerFactory()
+
     def __init__(self, database_manager: DataBaseManager.DataBaseManager, login_manager: LoginManager, socket_reference):
         self._db = database_manager
-        self._socket_reference = socket_reference
+        self._socket_reference = socket_reference  # only for the login manager store!!!
         self._login_manager = login_manager
 
     @staticmethod
@@ -24,20 +27,3 @@ class IRequestHandler:
         return self.handle_dictionary[code](self, data)
 
     handle_dictionary = {}
-
-
-# to avoid circular import
-def create_login_handler(database: DataBaseManager.DataBaseManager, login_manager, socket_reference):
-    from LoginRequest import LoginRequest
-    return LoginRequest(database, login_manager, socket_reference)
-
-
-def create_after_login_handler(database: DataBaseManager.DataBaseManager, login_manager, socket_reference, username):
-    from AfterLoginRequest import AfterLoginRequest
-    return AfterLoginRequest(database, login_manager, socket_reference, username)
-
-
-def create_sending_message_handler(database: DataBaseManager.DataBaseManager, login_manager, socket_reference,
-                                   from_user: str, to_user: str):
-    from SendingMessageHandler import SendingMessageHandler
-    return SendingMessageHandler(database, login_manager, socket_reference, from_user, to_user)

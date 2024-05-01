@@ -1,5 +1,5 @@
 import socket
-import IRequestHandler
+from IRequestHandler import IRequestHandler
 from select import select
 
 import LoginManager
@@ -34,9 +34,10 @@ class ChatServer:
                     print("A client accepted from", client_address)
 
                     # add the client to the clients dictionary with login handler
-                    self._clients[client_socket] = IRequestHandler.create_login_handler(self._database,
-                                                                                        self._login_manager,
-                                                                                        client_socket)
+                    self._clients[client_socket] = \
+                        IRequestHandler.handlers_factory.create_login_handler(self._database,
+                                                                              self._login_manager,
+                                                                              client_socket)
                 else:
                     try:
                         buffer = self.receive_request(sock)
@@ -48,7 +49,7 @@ class ChatServer:
                     except ServerError as error:
                         # send the error message to the client
                         self.send_response(sock, MessageCode.SERVER_ERROR.to_bytes() +
-                                            str(error).encode())
+                                           str(error).encode())
                     except socket.error as e:
                         print(e, sock)
                         self._login_manager.log_out_by_socket(sock)
