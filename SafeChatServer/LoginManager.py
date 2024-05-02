@@ -42,6 +42,9 @@ class LoginManager:
                 print("Client sign out!")
                 self._logged_clients.pop(key)
 
-    def get_logged_users(self):
-        return self._logged_clients
+    def user_is_online_and_logged(self, username):
+        return username in self._logged_clients
+
+    def get_user_socket(self, username):
+        return self._logged_clients[username]
 

@@ -14,19 +14,24 @@ class LoginMenu(ClientMenu.ClientMenu):
         return LoginOptions(int(user_choice))
 
     def _sign_up(self):
-        username = input("Please enter your username: ")
+        self._username = input("Please enter your username: ")
         password = input("Please choose a password: ")
         email = input("Please enter your email: ")
 
-        req_buffer = Serializer.serialize_signup(username, password, email)
+        req_buffer = Serializer.serialize_signup(self._username, password, email)
+
         self._client_communicator.send(req_buffer)  # send the request to the server
 
     def _login(self):
-        username = input("Please enter your username: ")
+        self._username = input("Please enter your username: ")
         password = input("Please choose a password: ")
 
-        req_buffer = Serializer.serialize_login(username, password)
+        req_buffer = Serializer.serialize_login(self._username, password)
+
         self._client_communicator.send(req_buffer)  # send the request to the server
+
+    def get_username(self) -> str or None:
+        return self._username
 
     menu_dict = {LoginOptions.LOG_IN: _login,
                  LoginOptions.SIGN_UP: _sign_up}

@@ -1,21 +1,13 @@
-from ClientCommunicator import ClientCommunicator
 from ClientHandler import ClientHandler
-from LoginMenu import LoginMenu
 from threading import Thread
 
-communicator = ClientCommunicator()
-menu = LoginMenu(communicator)
-
-handler = ClientHandler(communicator, menu)
+handler = ClientHandler()
 
 received_thread = Thread(target=handler.receive_loop)
 received_thread.daemon = True  # this thread in running at the background all the time!
 received_thread.start()
 
-menu_thread = Thread(target=handler.menu_loop)  # (the sender thread)
-menu_thread.start()
-
-menu_thread.join()
+handler.menu_loop()
 
 # from cryptography.hazmat.primitives import hashes
 # from cryptography.hazmat.primitives.kdf.hkdf import HKDF

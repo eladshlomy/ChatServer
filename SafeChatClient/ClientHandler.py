@@ -1,36 +1,45 @@
 from MessageCode import MessageCode
 from ClientCommunicator import ClientCommunicator
 from Deserializer import Deserializer
-from time import sleep
+from threading import Lock
 
 # menus
 from AfterLoginMenu import AfterLoginMenu
 from LoginMenu import LoginMenu
-from ClientMenu import ClientMenu
 from SendMessageMenu import SendMessageMenu
 
 
 class ClientHandler:
-    def __init__(self, client_communicator: ClientCommunicator, menu: ClientMenu):
-        self._client_communicator = client_communicator
-        self._menu = menu
+    def __init__(self):
+        self._client_communicator = ClientCommunicator()
+        self._menu_lock = Lock()
+        self._menu = LoginMenu(self._client_communicator)
+        self._username = None
 
     def receive_loop(self):
         while True:
             code, buffer = self._client_communicator.receive()
             if code in self.switch_dict.keys():
                 ClientHandler.switch_dict[code](self, buffer)
+
+                # if the message is menu-changing: release the menu
+                if code not in (MessageCode.NEW_MESSAGE_RECEIVED, MessageCode.MESSAGE_SENDING,
+                                MessageCode.NEW_MESSAGE_END):
+                    self._menu_lock.release()
             else:
                 print("invalid code received. ", code.name, code.value)
 
     def menu_loop(self):
         while True:
-            sleep(0.1)
+            self._menu_lock.acquire()  # the lock will be release only when the response will arrive
             self._menu.get_user_choice()
 
     def _login(self, buffer: bytes):
+
         if Deserializer.deserialize_binary_response(buffer):
             print("\nLog in successfully!")
+            if isinstance(self._menu, LoginMenu):
+                self._username = self._menu.get_username()
             self._menu = AfterLoginMenu(self._client_communicator)
 
         else:

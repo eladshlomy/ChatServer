@@ -9,8 +9,10 @@ class MessageCode(Enum):
     SIGN_OUT = 150
     SERVER_ERROR = 50
 
-    # GET_USER_PUBLIC_KEY
-    GET_UPDATE = 70
+    # client sending new messages
+    NEW_MESSAGE_RECEIVED = 40
+    # MESSAGE_SENDING = 15  -> can use the same code for sending the message back to the client!
+    NEW_MESSAGE_END = 60
 
     # message sending processes codes
     SEND_MESSAGE_REQ = 10

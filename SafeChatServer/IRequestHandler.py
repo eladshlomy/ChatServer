@@ -3,9 +3,10 @@ from LoginManager import LoginManager
 import ServerError
 from MessageCode import MessageCode
 from HandlerFactory import HandlerFactory
+from abc import ABC
 
 
-class IRequestHandler:
+class IRequestHandler(ABC):  # define as abstract class
     handlers_factory = HandlerFactory()
 
     def __init__(self, database_manager: DataBaseManager.DataBaseManager, login_manager: LoginManager, socket_reference):

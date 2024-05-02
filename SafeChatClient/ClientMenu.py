@@ -1,11 +1,14 @@
 from ClientCommunicator import ClientCommunicator
+from threading import Lock
+from abc import ABC
 
 MESSAGE_SIZE_FIELD_SIZE = 4
 
 
-class ClientMenu:
+class ClientMenu(ABC):  # abstract class
     def __init__(self, client_communicator: ClientCommunicator):
         self._client_communicator = client_communicator
+        self._username = None
 
     def get_user_choice(self):
         self._print_menu()

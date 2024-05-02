@@ -8,9 +8,6 @@ MESSAGE_CHUNK_SIZE = 512
 class SendMessageOptions(Enum):
     SIMPLE_TEXT_MESSAGE = 1
     EXIT_AND_CANCEL = 2
-    # IMAGE = 2
-    # VOICE_MESSAGE = 3
-    # SCHEDULED MESSAGE = 4
 
 
 class SendMessageMenu(ClientMenu):
