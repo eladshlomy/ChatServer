@@ -9,10 +9,13 @@ from abc import ABC
 class IRequestHandler(ABC):  # define as abstract class
     handlers_factory = HandlerFactory()
 
-    def __init__(self, database_manager: DataBaseManager.DataBaseManager, login_manager: LoginManager, socket_reference):
+    def __init__(self, database_manager: DataBaseManager.DataBaseManager, login_manager: LoginManager):
         self._db = database_manager
-        self._socket_reference = socket_reference  # only for the login manager store!!!
         self._login_manager = login_manager
+
+    def is_logged_in(self):
+        from AfterLoginRequestHandler import AfterLoginRequestHandler
+        return isinstance(self, AfterLoginRequestHandler)
 
     @staticmethod
     def _split_code_and_data(buffer: bytes) -> type[MessageCode, bytes]:

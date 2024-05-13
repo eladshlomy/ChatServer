@@ -1,17 +1,12 @@
 import ClientMenu
-import enum
+from enum import Enum
 from Serializer import Serializer
 
 
-class LoginOptions(enum.Enum):
-    LOG_IN = 1
-    SIGN_UP = 2
-
-
 class LoginMenu(ClientMenu.ClientMenu):
-    @staticmethod
-    def _input_process(user_choice):
-        return LoginOptions(int(user_choice))
+    class Option(Enum):
+        LOG_IN = 1
+        SIGN_UP = 2
 
     def _sign_up(self):
         self._username = input("Please enter your username: ")
@@ -23,15 +18,12 @@ class LoginMenu(ClientMenu.ClientMenu):
         self._client_communicator.send(req_buffer)  # send the request to the server
 
     def _login(self):
-        self._username = input("Please enter your username: ")
-        password = input("Please choose a password: ")
+        username = input("Please enter your username: ")
+        password = input("Please enter your password: ")
 
-        req_buffer = Serializer.serialize_login(self._username, password)
+        req_buffer = Serializer.serialize_login(username, password)
 
         self._client_communicator.send(req_buffer)  # send the request to the server
 
-    def get_username(self) -> str or None:
-        return self._username
-
-    menu_dict = {LoginOptions.LOG_IN: _login,
-                 LoginOptions.SIGN_UP: _sign_up}
+    menu_dict = {Option.LOG_IN: _login,
+                 Option.SIGN_UP: _sign_up}

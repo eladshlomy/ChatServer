@@ -39,7 +39,7 @@ class Communicator:
         self._clients_sockets.remove(client)
 
     @staticmethod
-    def receive_request(client_socket) -> bytes:
+    def receive_request(client_socket: socket.socket) -> bytes:
         data = client_socket.recv(MESSAGE_SIZE_FIELD_SIZE)
         if not data:  # in case that the client disconnect the bytes will be empty
             raise socket.error("Client disconnected")
@@ -49,7 +49,7 @@ class Communicator:
         return request
 
     @staticmethod
-    def send_response(client_socket, buffer: bytes):
+    def send(client_socket: socket.socket, buffer: bytes):
         if buffer:
             size = len(buffer).to_bytes(MESSAGE_SIZE_FIELD_SIZE)
             client_socket.send(size + buffer)

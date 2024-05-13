@@ -21,8 +21,8 @@ class Serializer:
         return MessageCode.SEND_MESSAGE_REQ.to_bytes() + Serializer._create_string_field(to)
 
     @staticmethod
-    def serialize_sending_message(message_chunk: str):
-        return MessageCode.MESSAGE_SENDING.to_bytes() + message_chunk.encode()
+    def serialize_sending_message(message_chunk: bytes):
+        return MessageCode.MESSAGE_SENDING.to_bytes() + message_chunk
 
     @staticmethod
     def serialize_end_message():
@@ -33,10 +33,6 @@ class Serializer:
         return MessageCode.CANCEL_MESSAGE.to_bytes()
 
     @staticmethod
-    def serialize_get_update(from_date):
-        pass
-
-    @staticmethod
     def _create_string_field(field: str):
         return len(field).to_bytes(SIZE_FIELD_BYTES_SIZE) + field.encode()
 
@@ -44,6 +40,6 @@ class Serializer:
     def _all_params_to_string_fields(locals_dict: dict):
         buffer = b''
         for k, v in locals_dict.items():
-            buffer += Serializer._create_string_field(v)
+            buffer += Serializer._create_string_field(str(v))
 
         return buffer

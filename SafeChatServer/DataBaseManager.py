@@ -23,7 +23,7 @@ USERS
 USERNAME|PASSWORD|EMAIL|PUBLIC_KEY
 
 MESSAGES
-ID|FROM|TO|ENCRYPTED_MESSAGE|DATE
+FROM|TO|ENCRYPTED_MESSAGE|DATE
 
 GROUPS
 ID|NAME
@@ -43,17 +43,16 @@ class DataBaseManager:
 
         # create the users table
         self._cursor.execute(
-            f"CREATE TABLE IF NOT EXISTS {USERS}"
-            f"({ID} INTEGER PRIMARY KEY AUTOINCREMENT, {USERNAME} TEXT UNIQUE NOT NULL,"
-            f"{HASHED_PASSWORD} BLOB NOT NULL, {EMAIL} TEXT UNIQUE NOT NULL);")  # {PUBLIC_KEY} BLOB NOT NULL
+            f"CREATE TABLE IF NOT EXISTS {USERS} ({USERNAME} TEXT PRIMARY KEY,"
+            f"{HASHED_PASSWORD} BLOB NOT NULL, {EMAIL} TEXT UNIQUE NOT NULL);")
 
         # create the messages table
         self._cursor.execute(
-            f"CREATE TABLE IF NOT EXISTS {MESSAGES_FOR_OFFLINE_USERS} ({ID} INTEGER PRIMARY KEY AUTOINCREMENT"
-            f", {FROM} INTEGER NOT NULL, {TO} INTEGER NOT NULL"
+            f"CREATE TABLE IF NOT EXISTS {MESSAGES_FOR_OFFLINE_USERS} "
+            f"({FROM} TEXT NOT NULL, {TO} TEXT NOT NULL"
             f", {ENCRYPTED_MESSAGE} BLOB NOT NULL, {DATE} TEXT NOT NULL"
-            f", FOREIGN KEY({FROM}) REFERENCES {USERS}({ID})"
-            f", FOREIGN KEY({TO}) REFERENCES {USERS}({ID}));")
+            f", FOREIGN KEY({FROM}) REFERENCES {USERS}({USERNAME})"
+            f", FOREIGN KEY({TO}) REFERENCES {USERS}({USERNAME}));")
 
         self._connection.commit()  # commit the command
 
@@ -88,39 +87,24 @@ class DataBaseManager:
         :return:
         """
 
-        from_user_id = self._get_user_id(from_user)
-        to_user_id = self._get_user_id(to_user)
-
         # add the message with the current datetime (in UTC - Coordinated Universal Time)
         self._cursor.execute(f"INSERT INTO {MESSAGES_FOR_OFFLINE_USERS} ({FROM}, {TO}, {ENCRYPTED_MESSAGE}, {DATE})"
                              f" VALUES (?, ?, ?, datetime(\"now\"));",
-                             (from_user_id, to_user_id, encrypted_message))
-        self._connection.commit()
+                             (from_user, to_user, sqlite3.Binary(encrypted_message)))
+        self._connection.commit()  # commit the change
 
-    def _get_user_id(self, username: str) -> int:
+    def pop_messages(self, user: str):
         """
-        The function returns the id of specific username
-        Assume that the user exist
-        :param username: the user's username
-        :return: the user's ID
+        Pop messages that intended for a specific user
+        :param user: the username
+        :return: the messages List[FROM(string), TO(string), ENCRYPTED_MESSAGE(bytes), DATE(string))]
         """
-
-        self._cursor.execute(F"SELECT {ID} FROM {USERS} WHERE {USERNAME} = ?;", (username,))
-        return int(self._cursor.fetchone()[0])  # raise IndexError if user is not exist
-
-    def get_all_messages_since(self, to_user: str, after_date: datetime.datetime):
-        """
-        Get update of the new messages of specific user
-        **The function assume that the user exist**
-        :param to_user: the destination of the message
-        :param after_date: the last updated date
-        :return: list of all the messages after this date [ID(int), FROM(int), TO(int), ENCRYPTED_MESSAGE(bytes), DATE(string)]
-        """
-
-        to_user_id = self._get_user_id(to_user)
-
+        # select the messages that sent to the user
         self._cursor.execute(
-            f"SELECT * FROM {MESSAGES_FOR_OFFLINE_USERS}"
-            f"WHERE ({FROM} = ? OR {TO} = ?) AND datetime({DATE}) >= datetime(?);",
-            (to_user_id, to_user_id, str(after_date)))
-        return self._cursor.fetchall()
+            f"SELECT * FROM {MESSAGES_FOR_OFFLINE_USERS} WHERE {TO} = ?;", (user, ))
+        res = self._cursor.fetchall()
+
+        # delete the messages after fetching
+        self._cursor.execute(f"DELETE FROM {MESSAGES_FOR_OFFLINE_USERS} WHERE {TO} = ?;", (user, ))
+        self._connection.commit()
+        return res

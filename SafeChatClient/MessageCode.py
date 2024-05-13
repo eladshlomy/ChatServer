@@ -11,7 +11,7 @@ class MessageCode(Enum):
 
     # client sending new messages
     NEW_MESSAGE_RECEIVED = 40
-    # MESSAGE_SENDING = 15  -> can use the same code for sending the message back to the client!
+    # MESSAGE_SENDING = 15  -> can use the same code for sending the message back to the client
     NEW_MESSAGE_END = 60
 
     # message sending processes codes

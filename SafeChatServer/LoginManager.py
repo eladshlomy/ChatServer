@@ -1,17 +1,18 @@
 from DataBaseManager import DataBaseManager
+from MessageNotifier import MessageNotifier
 from hashlib import md5
-from socket import socket
 
 
 class LoginManager:
-    def __init__(self, database: DataBaseManager):
+    def __init__(self, database: DataBaseManager, message_notifier: MessageNotifier):
         self._db = database
-        self._logged_clients = {}
+        self._message_notifier = message_notifier
+        self._logged_clients = []
 
-    def login(self, socket_reference: socket, username: str, password: str) -> bool:
+    def login(self, username: str, password: str) -> bool:
         user_data = self._db.find_user(username)
 
-        if user_data is None:
+        if user_data is None or self.is_online(username):
             return False
 
         username, real_hashed_password, email = user_data
@@ -19,32 +20,30 @@ class LoginManager:
         # varify the password
         if real_hashed_password == md5(password.encode()).digest():
             print("Client logged in!")
-            self._logged_clients[username] = socket_reference
+            self._logged_clients.append(username)
+
+            # notify the messages that sent to the client while he was offline
+            self._message_notifier.notify_messages(self._db.pop_messages(username))
             return True
         return False
 
-    def sign_up(self, socket_reference: socket, username: str, password: str, email: str):
+    def sign_up(self, username: str, password: str, email: str):
         res = self._db.add_user(username, md5(password.encode()).digest(), email)
         if res:
             print("Client sign up!")
-            self._logged_clients[username] = socket_reference
+            self._logged_clients.append(username)
             return True
         return False
 
     def log_out(self, username: str) -> bool:
         print("Client sign out!")
-        self._logged_clients.pop(username)
+        self._logged_clients.remove(username)
         return True
 
-    def log_out_by_socket(self, socket_reference: socket):
-        for key, val in self._logged_clients.copy().items():
-            if val == socket_reference:
-                print("Client sign out!")
-                self._logged_clients.pop(key)
-
-    def user_is_online_and_logged(self, username):
+    def is_online(self, username):
         return username in self._logged_clients
 
-    def get_user_socket(self, username):
-        return self._logged_clients[username]
+    def get_message_notifier(self):
+        return self._message_notifier
+
 
