@@ -1,5 +1,4 @@
 import sqlite3
-from threading import Condition
 
 """
 For each connected user there is different database. (username.sqlite)
@@ -29,7 +28,6 @@ class DataBaseManager:
         self._connection = None
         self._cursor = None
         self._username = None
-        self._is_connected_condition = Condition()
 
     @property
     def username(self):
@@ -44,8 +42,6 @@ class DataBaseManager:
         self._username = username
 
         self._init()  # init the db
-        with self._is_connected_condition:
-            self._is_connected_condition.notify()
 
     def disconnect(self):
         if self.is_connected():
