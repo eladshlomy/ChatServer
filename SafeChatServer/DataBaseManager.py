@@ -1,5 +1,4 @@
 import sqlite3
-import datetime
 
 DB_NAME = "ChatServerDB.sqlite"
 
@@ -96,8 +95,8 @@ class DataBaseManager:
     def pop_messages(self, user: str):
         """
         Pop messages that intended for a specific user
-        :param user: the username
-        :return: the messages List[FROM(string), TO(string), ENCRYPTED_MESSAGE(bytes), DATE(string))]
+        :param user: the user's username
+        :return: the messages List[FROM(string), TO(string), ENCRYPTED_MESSAGE(bytes), DATE(string)]
         """
         # select the messages that sent to the user
         self._cursor.execute(

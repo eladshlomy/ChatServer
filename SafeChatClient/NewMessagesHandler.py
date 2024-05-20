@@ -18,10 +18,9 @@ class NewMessagesHandler(IHandler):
         self._message_data += buffer
 
     def _message_ending(self, buffer):
-        print("\nYou got a new message!")
-        print(self._source_username, ": ", self._message_data)
+        print("\nYou got a new message!\n" + self._source_username + ": " + self._message_data.decode())
 
-        # TODO: save the message in the database
+        self._database.add_received_message(self._source_username, self._message_data.decode())
 
         self.__init__(self._database)  # init all the message details
 

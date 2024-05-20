@@ -13,7 +13,7 @@ class IRequestHandler(ABC):  # define as abstract class
         self._db = database_manager
         self._login_manager = login_manager
 
-    def is_logged_in(self):
+    def is_logged_in(self):  # helper
         from AfterLoginRequestHandler import AfterLoginRequestHandler
         return isinstance(self, AfterLoginRequestHandler)
 

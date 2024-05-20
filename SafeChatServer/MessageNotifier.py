@@ -32,8 +32,7 @@ class MessageNotifier:
 
     def notifier_loop(self):
         """
-        A thread function that waiting to the '_new_messages_condition' condition to notify
-        and then pop the new message from the queue and send the message to the target
+        A thread function that waiting for message notification and then send the message to the target
         """
         while True:
             with self._new_messages_condition:  # lock the queue and release when finish
@@ -58,7 +57,7 @@ class MessageNotifier:
 
     def _find_online_user_socket(self, username: str) -> socket:
         """
-        this method gets online-user and return the username socket
+        This method gets online-user and return the username socket
         :param username: the online-user's username
         :return: the user socket
         """

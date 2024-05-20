@@ -10,7 +10,7 @@ class IHandler(ABC):
     def is_relevant(self, code: MessageCode) -> bool:
         return code in self.switch_dict
 
-    def handle(self, code: MessageCode, buffer: bytes) -> None:
-        self.switch_dict[code](self, buffer)
+    def handle(self, code: MessageCode, buffer: bytes, *params):
+        return self.switch_dict[code](self, buffer, *params)
 
     switch_dict = {}

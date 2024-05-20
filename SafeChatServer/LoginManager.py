@@ -43,7 +43,6 @@ class LoginManager:
     def is_online(self, username):
         return username in self._logged_clients
 
-    def get_message_notifier(self):
+    @property
+    def message_notifier(self):
         return self._message_notifier
-
-
