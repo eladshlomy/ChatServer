@@ -9,7 +9,7 @@ class LoginManager:
         self._message_notifier = message_notifier
         self._logged_clients = []
 
-    def login(self, username: str, password: str) -> bool:
+    def login(self, username: str, password: str, public_key: bytes) -> bool:
         user_data = self._db.find_user(username)
 
         if user_data is None or self.is_online(username):
@@ -20,6 +20,8 @@ class LoginManager:
         # varify the password
         if real_hashed_password == md5(password.encode()).digest():
             print("Client logged in!")
+            self._db.update_public_key(username, public_key)
+
             self._logged_clients.append(username)
 
             # notify the messages that sent to the client while he was offline
@@ -27,8 +29,9 @@ class LoginManager:
             return True
         return False
 
-    def sign_up(self, username: str, password: str, email: str):
-        res = self._db.add_user(username, md5(password.encode()).digest(), email)
+    def sign_up(self, username: str, password: str, email: str, public_key: bytes):
+        res = self._db.add_user(username, md5(password.encode()).digest(), email, public_key)
+
         if res:
             print("Client sign up!")
             self._logged_clients.append(username)

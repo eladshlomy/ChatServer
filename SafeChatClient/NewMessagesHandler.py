@@ -3,8 +3,8 @@ from Deserializer import Deserializer
 
 
 class NewMessagesHandler(IHandler):
-    def __init__(self, database: DataBaseManager):
-        super().__init__(database)
+    def __init__(self, database: DataBaseManager, encryption_manager):
+        super().__init__(database, encryption_manager)
 
         # the message details
         self._message_data = b''
@@ -18,11 +18,12 @@ class NewMessagesHandler(IHandler):
         self._message_data += buffer
 
     def _message_ending(self, buffer):
-        print("\nYou got a new message!\n" + self._source_username + ": " + self._message_data.decode())
+        decrypted_message = self._encryption_manager.end_to_end_decrypt(self._message_data, self._source_username)
 
-        self._database.add_received_message(self._source_username, self._message_data.decode())
+        print("\nYou got a new message!\n" + self._source_username + ": " + decrypted_message)
+        self._database.add_received_message(self._source_username, decrypted_message)
 
-        self.__init__(self._database)  # init all the message details
+        self.__init__(self._database, self._encryption_manager)  # init all the message details
 
     switch_dict = {MessageCode.NEW_MESSAGE_RECEIVED: _new_message_notify,
                    MessageCode.MESSAGE_SENDING: _message_data_sending,

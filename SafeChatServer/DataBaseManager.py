@@ -43,7 +43,7 @@ class DataBaseManager:
         # create the users table
         self._cursor.execute(
             f"CREATE TABLE IF NOT EXISTS {USERS} ({USERNAME} TEXT PRIMARY KEY,"
-            f"{HASHED_PASSWORD} BLOB NOT NULL, {EMAIL} TEXT UNIQUE NOT NULL);")
+            f"{HASHED_PASSWORD} BLOB NOT NULL, {EMAIL} TEXT UNIQUE NOT NULL, {PUBLIC_KEY} BLOB NOT NULL);")
 
         # create the messages table
         self._cursor.execute(
@@ -55,11 +55,16 @@ class DataBaseManager:
 
         self._connection.commit()  # commit the command
 
-    def add_user(self, username: str, hashed_password: bytes, email: str):
+    def update_public_key(self, username: str, new_public_key: bytes):
+        self._cursor.execute(f"UPDATE {USERS} SET {PUBLIC_KEY} = ? WHERE {USERNAME} = ?;",
+                             (new_public_key, username))
+        self._connection.commit()
+
+    def add_user(self, username: str, hashed_password: bytes, email: str, public_key: bytes):
         try:
-            self._cursor.execute(f"INSERT INTO {USERS} ({USERNAME}, {HASHED_PASSWORD}, {EMAIL})"
-                                 f" VALUES (?, ?, ?);",
-                                 (username, sqlite3.Binary(hashed_password), email))
+            self._cursor.execute(f"INSERT INTO {USERS} ({USERNAME}, {HASHED_PASSWORD}, {EMAIL}, {PUBLIC_KEY})"
+                                 f" VALUES (?, ?, ?, ?);",
+                                 (username, sqlite3.Binary(hashed_password), email, public_key))
             self._connection.commit()
             return True
 
@@ -75,6 +80,11 @@ class DataBaseManager:
     def user_exist(self, username: str) -> bool:
         self._cursor.execute(f"SELECT * FROM {USERS} WHERE {USERNAME} = ?;", (username,))
         return bool(self._cursor.fetchall())  # check if the result list is empty
+
+    def get_public_key(self, username: str) -> bytes or None:
+        self._cursor.execute(f"SELECT {PUBLIC_KEY} FROM {USERS} WHERE {USERNAME} = ?;", (username, ))
+        res = self._cursor.fetchone()
+        return res[0] if res else res
 
     def add_message(self, from_user: str, to_user: str, encrypted_message: bytes):
         """

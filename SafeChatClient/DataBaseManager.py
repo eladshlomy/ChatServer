@@ -6,7 +6,7 @@ The database contains all the messages that the user sent and received
 Each database look like this:
 
 USERS:
-    USERNAME    |   LAST_PUBLIC_KEY
+    USERNAME    |   LAST_PUBLIC_KEY     |   LAST_PUBLIC_K   |
 
 MESSAGES:
     SOURCE    |   DESTINATION  | MESSAGE
@@ -16,7 +16,8 @@ USERS = "USERS"
 MESSAGES = "MESSAGES"
 
 USERNAME = "USERNAME"
-LAST_PRIVATE_KEY = "LAST_PRIVATE_K"
+LAST_PRIVATE_KEY = "LAST_PRIVATE_K"  # my private
+LAST_PUBLIC_KEY = "LAST_PUBLIC_K"  # the other user public
 
 SOURCE = "SOURCE"
 DESTINATION = "DESTINATION"
@@ -51,26 +52,37 @@ class DataBaseManager:
     def _init(self):
         if self.is_connected():
             self._cursor.execute(f"CREATE TABLE IF NOT EXISTS {USERS} ({USERNAME} TEXT PRIMARY KEY,"
-                                 f"{LAST_PRIVATE_KEY} BLOB);")
+                                 f"{LAST_PUBLIC_KEY} BLOB, {LAST_PRIVATE_KEY} BLOB);")
 
             self._cursor.execute(f"CREATE TABLE IF NOT EXISTS {MESSAGES} ({SOURCE} TEXT NOT NULL,"
                                  f"{DESTINATION} TEXT NOT NULL, {CONTENT} TEXT NOT NULL);")
 
-    def add_user(self, username):
-        self._cursor.execute(f"INSERT INTO {USERS} ({USERNAME}) VALUES (?);", (username, ))
-
-    def user_exist(self, username: str) -> bool:
-        self._cursor.execute(f"SELECT * FROM {USERS} WHERE {USERNAME} = ?;", (username, ))
-        return bool(self._cursor.fetchall())  # check if the result list is empty
-
-    def get_conversation_last_private_key(self, username):
+    # ############################# users table handling #############################
+    def get_last_private_key(self, username: str) -> bytes:
         self._cursor.execute(f"SELECT {LAST_PRIVATE_KEY} FROM {USERS} WHERE {USERNAME} = ?;", (username,))
-        return self._cursor.fetchone()[0]
+        res = self._cursor.fetchone()
+        return res[0] if res else res
 
-    def update_conversation_last_private_key(self, username, new_private_key):
-        self._cursor.execute(f"UPDATE {USERS} SET {LAST_PRIVATE_KEY} = ? WHERE {USERNAME} = ?;",
-                             (new_private_key, username))
+    def get_last_other_public_key(self, username: str) -> bytes:
+        self._cursor.execute(f"SELECT {LAST_PUBLIC_KEY} FROM {USERS} WHERE {USERNAME} = ?;", (username,))
+        res = self._cursor.fetchone()
+        return res[0] if res else res
+
+    def set_last_private_key(self, username: str, new_private_key: bytes):
+        self._cursor.execute(f"INSERT INTO {USERS} ({USERNAME}, {LAST_PUBLIC_KEY}, {LAST_PRIVATE_KEY}) "
+                             f"VALUES (?, ?, ?) ON "
+                             f"CONFLICT({USERNAME}) DO UPDATE SET {LAST_PRIVATE_KEY} = excluded.{LAST_PRIVATE_KEY};",
+                             (username, None, new_private_key))
         self._connection.commit()
+
+    def set_last_other_public_key(self, username: str, new_public_key: bytes):
+        self._cursor.execute(f"INSERT INTO {USERS} ({USERNAME}, {LAST_PUBLIC_KEY}, {LAST_PRIVATE_KEY}) "
+                             f"VALUES (?, ?, ?) ON "
+                             f"CONFLICT({USERNAME}) DO UPDATE SET {LAST_PUBLIC_KEY} = excluded.{LAST_PUBLIC_KEY};",
+                             (username, new_public_key, None))
+        self._connection.commit()
+
+    # ############################ message table handling ############################
 
     def add_message(self, from_user: str, to_user: str, message: str):
         self._cursor.execute(f"INSERT INTO {MESSAGES} ({SOURCE}, {DESTINATION}, {CONTENT}) VALUES (?, ?, ?);",

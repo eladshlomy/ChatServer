@@ -10,8 +10,8 @@ class ChatMenu(AfterLoginMenu):
         EXIT = 4
         # BLOCK_USER = 5
 
-    def __init__(self, communicator, database, chat_with):
-        super().__init__(communicator, database)
+    def __init__(self, communicator, database, encryption_manager, chat_with):
+        super().__init__(communicator, database, encryption_manager)
         self._chat_with = chat_with
 
     def _print_chat(self):
@@ -27,7 +27,7 @@ class ChatMenu(AfterLoginMenu):
         return self._exit()
 
     def _exit(self):
-        return MenuFactory.create_choose_chat_menu(self._client_communicator, self._database)
+        return MenuFactory.create_choose_chat_menu(self._client_communicator, self._database, self._encryption_manager)
 
     menu_dict = {Option.PRINT_CHAT: _print_chat,
                  Option.SEND_MESSAGE: _send_message,

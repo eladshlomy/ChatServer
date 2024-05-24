@@ -1,6 +1,7 @@
 from AfterLoginMenu import AfterLoginMenu, DataBaseManager
 from Serializer import Serializer
 from enum import Enum
+from EncryptionManager import EncryptionManager
 
 MESSAGE_CHUNK_SIZE = 5
 
@@ -10,9 +11,11 @@ class SendMessageMenu(AfterLoginMenu):
         SIMPLE_TEXT_MESSAGE = 1
         EXIT_AND_CANCEL = 2
 
-    def __init__(self, communicator, database: DataBaseManager, destination):
-        super().__init__(communicator, database)
+    def __init__(self, communicator, database: DataBaseManager, encryption_manager: EncryptionManager,
+                 destination, public_key: bytes):
+        super().__init__(communicator, database, encryption_manager)
 
+        self._public_key = public_key
         self._destination = destination
         self._message = None  # store the message content
 
@@ -23,10 +26,13 @@ class SendMessageMenu(AfterLoginMenu):
     def _text_message(self):
         self._message = input("Please enter the message: ")
 
+        encrypted_message = self._encryption_manager.end_to_end_encrypt(self._message, self._destination,
+                                                                        self._public_key)
+
         # split the message into chunks and send each chunk to the server
-        for i in range(0, len(self._message), MESSAGE_CHUNK_SIZE):
+        for i in range(0, len(encrypted_message), MESSAGE_CHUNK_SIZE):
             self._client_communicator.send(
-                Serializer.serialize_sending_message(self._message[i: i + MESSAGE_CHUNK_SIZE].encode()))
+                Serializer.serialize_sending_message(encrypted_message[i: i + MESSAGE_CHUNK_SIZE]))
 
         # notifies the server that we have sent all the message chunks
         self._client_communicator.send(Serializer.serialize_end_message())

@@ -9,13 +9,15 @@ class Serializer:
 
     @staticmethod
     def serialize_login_response(res: bool, username: str):
-        return (Serializer.binary_response(MessageCode.MessageCode.LOGIN, res) +
-                Serializer._create_string_field(username))
+        return Serializer.binary_response(MessageCode.MessageCode.LOGIN, res) + username.encode()
 
     @staticmethod
     def serialize_sign_up_response(res: bool, username: str):
-        return (Serializer.binary_response(MessageCode.MessageCode.SIGN_UP, res) +
-                Serializer._create_string_field(username))
+        return Serializer.binary_response(MessageCode.MessageCode.SIGN_UP, res) + username.encode()
+
+    @staticmethod
+    def serialize_send_message_response(res: bool, target_public_key: bytes):
+        return Serializer.binary_response(MessageCode.MessageCode.SEND_MESSAGE_REQ, res) + target_public_key
 
     @staticmethod
     def serialize_new_message_notify(from_user: str, date: str) -> bytes:

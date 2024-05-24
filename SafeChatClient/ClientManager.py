@@ -5,17 +5,19 @@ from DataBaseManager import DataBaseManager
 from MenuFactory import MenuFactory
 from threading import Lock
 from LoginMenu import LoginMenu
+from EncryptionManager import EncryptionManager
 
 
 class ClientManager:
     def __init__(self):
         self._communicator = ClientCommunicator()
         self._database = DataBaseManager()
+        self._encryption_manager = EncryptionManager(self._database)
 
-        self.__menu = MenuFactory.create_login_menu(self._communicator)
+        self.__menu = MenuFactory.create_login_menu(self._communicator, self._encryption_manager)
         self._menu_lock = Lock()
-        self._new_messages_handler = NewMessagesHandler(self._database)
-        self._response_handler = ResponseHandler(self._database)
+        self._new_messages_handler = NewMessagesHandler(self._database, self._encryption_manager)
+        self._response_handler = ResponseHandler(self._database, self._encryption_manager)
 
     @property
     def menu(self):

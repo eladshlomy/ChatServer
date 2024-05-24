@@ -20,8 +20,9 @@ class ResponseHandler(IHandler):
             print("Hello", username + "!")
             print("Welcome back!")
 
-            return MenuFactory.create_after_login_menu(menu.communicator, self._database)
+            return MenuFactory.create_after_login_menu(menu.communicator, self._database, self._encryption_manager)
 
+        self._encryption_manager.delete_key(username)  # delete the private key that created
         print("\nLog in went wrong.", username)
         return menu
 
@@ -30,17 +31,18 @@ class ResponseHandler(IHandler):
             self._database.disconnect()
             print("\nSign out successfully!")
 
-            return MenuFactory.create_login_menu(menu.communicator)
+            return MenuFactory.create_login_menu(menu.communicator, self._encryption_manager)
 
         print("\nSign out is went wrong.")
         return menu
 
     def _send_message_req(self, buffer: bytes, menu: ClientMenu):
-        if (Deserializer.deserialize_binary_response(buffer) and
-                isinstance(menu, AfterLoginMenu)):  # obvious - only for safety
+        res, public_key = Deserializer.deserialize_send_message_response(buffer)  # public_key could be b''
+        if res and isinstance(menu, AfterLoginMenu):  # obvious - only for safety
 
             print("Valid message request!")
-            return MenuFactory.create_send_message_menu(menu.communicator, self._database, menu.destination)
+            return MenuFactory.create_send_message_menu(menu.communicator, self._database, self._encryption_manager,
+                                                        menu.destination, public_key)
 
         print("\nInvalid send message request - (invalid destination)")
         return menu
@@ -52,7 +54,7 @@ class ResponseHandler(IHandler):
             self._database.add_sent_message(menu.destination, menu.message_data)
 
             print("\nMessage were send successfully!")
-            return MenuFactory.create_after_login_menu(menu.communicator, self._database)
+            return MenuFactory.create_after_login_menu(menu.communicator, self._database, self._encryption_manager)
 
         print("\nSomething went wrong while sending the message")
         return menu
@@ -60,7 +62,7 @@ class ResponseHandler(IHandler):
     def _message_canceling(self, buffer: bytes, menu: ClientMenu):
         if Deserializer.deserialize_binary_response(buffer):
             print("\nMessage sending canceled successfully!")
-            return MenuFactory.create_after_login_menu(menu.communicator, self._database)
+            return MenuFactory.create_after_login_menu(menu.communicator, self._database, self._encryption_manager)
 
         print("\nSomething went wrong while canceling the message")
         return menu

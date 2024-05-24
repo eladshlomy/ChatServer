@@ -6,8 +6,8 @@ from MenuFactory import MenuFactory
 
 
 class ChooseChatMenu(AfterLoginMenu):
-    def __init__(self, communicator, database: DataBaseManager):
-        super().__init__(communicator, database)
+    def __init__(self, communicator, database: DataBaseManager, encryption_manager):
+        super().__init__(communicator, database, encryption_manager)
 
         enum_values = {}
         count = 0
@@ -21,6 +21,8 @@ class ChooseChatMenu(AfterLoginMenu):
 
     def make_choice(self, choice):
         if choice is self.Option.EXIT:
-            return MenuFactory.create_after_login_menu(self._client_communicator, self._database)
-        return MenuFactory.create_chat_menu(self._client_communicator, self._database, choice.name)
+            return MenuFactory.create_after_login_menu(self._client_communicator, self._database,
+                                                       self._encryption_manager)
+        return MenuFactory.create_chat_menu(self._client_communicator, self._database, self._encryption_manager,
+                                            choice.name)
 
