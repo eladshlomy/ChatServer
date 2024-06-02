@@ -25,9 +25,9 @@ class SendMessageMenu(AfterLoginMenu):
 
     def _text_message(self):
         self._message = input("Please enter the message: ")
-
+        pub_k = self._public_key if self._public_key else self._database.get_last_other_public_key(self._destination)
         encrypted_message = self._encryption_manager.end_to_end_encrypt(self._message, self._destination,
-                                                                        self._public_key)
+                                                                        pub_k)
 
         # split the message into chunks and send each chunk to the server
         for i in range(0, len(encrypted_message), MESSAGE_CHUNK_SIZE):

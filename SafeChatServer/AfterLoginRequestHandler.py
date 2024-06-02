@@ -19,9 +19,7 @@ class AfterLoginRequestHandler(IRequestHandler):
                 Serializer.binary_response(MessageCode.SIGN_OUT, self._login_manager.log_out(self._username)))
 
     def _send_message_req(self, buffer: bytes):
-        print(buffer)
         to_user, public_key_req = Deserializer.send_message_req_deserialize(buffer)
-        print(to_user, public_key_req)
 
         exist_and_valid = self._db.user_exist(to_user) and to_user != self._username
 

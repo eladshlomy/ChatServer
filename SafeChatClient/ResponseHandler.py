@@ -22,7 +22,6 @@ class ResponseHandler(IHandler):
 
             return MenuFactory.create_after_login_menu(menu.communicator, self._database, self._encryption_manager)
 
-        self._encryption_manager.delete_key(username)  # delete the private key that created
         print("\nLog in went wrong.", username)
         return menu
 

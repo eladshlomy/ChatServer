@@ -19,7 +19,7 @@ class MessageNotifier:
         self._messages_queue = []
         self._new_messages_condition = Condition()
 
-    def notify_a_message(self,from_user: str, to_user: str, message: bytes, date: str):
+    def notify_a_message(self, from_user: str, to_user: str, message: bytes, date: str):
         with self._new_messages_condition:  # lock the queue and release when finish
             self._messages_queue.append((from_user, to_user, message, date))
             self._new_messages_condition.notify()

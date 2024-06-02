@@ -7,12 +7,10 @@ MESSAGE_SIZE_FIELD_SIZE = 4
 
 
 class ClientMenu(ABC):  # abstract class
-    _instance = None
-
     class Option(Enum):
         pass
 
-    def __init__(self, client_communicator: ClientCommunicator, encryption_manager: EncryptionManager):
+    def __init__(self, client_communicator: ClientCommunicator, encryption_manager: פרןמ):
         self._client_communicator = client_communicator
         self._encryption_manager = encryption_manager
 

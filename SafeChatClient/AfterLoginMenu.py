@@ -37,9 +37,9 @@ class AfterLoginMenu(ClientMenu.ClientMenu):
     def _send_message(self):
         self._send_message_req(input("Please enter the username you would like to send a message to: "))
 
-    def _view_chat(self):
+    def _choose_chat(self):
         return MenuFactory.create_choose_chat_menu(self._client_communicator, self._database, self._encryption_manager)
 
     menu_dict = {Option.SEND_MESSAGE: _send_message,
-                 Option.VIEW_CHAT: _view_chat,
+                 Option.VIEW_CHAT: _choose_chat,
                  Option.LOG_OUT: _logout}

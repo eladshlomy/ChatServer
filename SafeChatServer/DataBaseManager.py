@@ -15,8 +15,6 @@ TO = "TO_USER"
 ENCRYPTED_MESSAGE = "ENCRYPTED_MESSAGE"
 DATE = "DATE"
 
-ID = "ID"
-
 """
 USERS
 USERNAME|PASSWORD|EMAIL|PUBLIC_KEY
@@ -55,6 +53,11 @@ class DataBaseManager:
 
         self._connection.commit()  # commit the command
 
+    def get_public_key(self, username: str) -> bytes or None:
+        self._cursor.execute(f"SELECT {PUBLIC_KEY} FROM {USERS} WHERE {USERNAME} = ?;", (username, ))
+        res = self._cursor.fetchone()
+        return res[0] if res else res
+
     def update_public_key(self, username: str, new_public_key: bytes):
         self._cursor.execute(f"UPDATE {USERS} SET {PUBLIC_KEY} = ? WHERE {USERNAME} = ?;",
                              (new_public_key, username))
@@ -80,11 +83,6 @@ class DataBaseManager:
     def user_exist(self, username: str) -> bool:
         self._cursor.execute(f"SELECT * FROM {USERS} WHERE {USERNAME} = ?;", (username,))
         return bool(self._cursor.fetchall())  # check if the result list is empty
-
-    def get_public_key(self, username: str) -> bytes or None:
-        self._cursor.execute(f"SELECT {PUBLIC_KEY} FROM {USERS} WHERE {USERNAME} = ?;", (username, ))
-        res = self._cursor.fetchone()
-        return res[0] if res else res
 
     def add_message(self, from_user: str, to_user: str, encrypted_message: bytes):
         """

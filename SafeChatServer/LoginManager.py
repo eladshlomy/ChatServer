@@ -19,7 +19,7 @@ class LoginManager:
 
         # varify the password
         if real_hashed_password == md5(password.encode()).digest():
-            print("Client logged in!")
+            print("Client logged in!", username)
             self._db.update_public_key(username, public_key)
 
             self._logged_clients.append(username)
@@ -29,11 +29,11 @@ class LoginManager:
             return True
         return False
 
-    def sign_up(self, username: str, password: str, email: str, public_key: bytes):
+    def sign_up(self, username: str, password: str, email: str, public_key: bytes) -> bool:
         res = self._db.add_user(username, md5(password.encode()).digest(), email, public_key)
 
         if res:
-            print("Client sign up!")
+            print("Client sign up!", username)
             self._logged_clients.append(username)
             return True
         return False

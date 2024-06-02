@@ -6,7 +6,7 @@ The database contains all the messages that the user sent and received
 Each database look like this:
 
 USERS:
-    USERNAME    |   LAST_PUBLIC_KEY     |   LAST_PUBLIC_K   |
+    USERNAME    |   LAST_PUBLIC_KEY     |   LAST_PRIVATE_K   |
 
 MESSAGES:
     SOURCE    |   DESTINATION  | MESSAGE

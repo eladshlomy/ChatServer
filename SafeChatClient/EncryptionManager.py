@@ -4,7 +4,7 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import dh
-from os import urandom, path, remove
+from os import urandom, path
 
 BYTE_SIZE_IN_BITS = 8  # bits
 IV_LENGTH = 16  # bytes
@@ -34,9 +34,7 @@ class EncryptionManager:
                 self._default_private = serialization.load_pem_private_key(key_file.read(), password=None)
             public = self._default_private.public_key()
 
-            res = public.public_numbers().y.to_bytes(public.key_size // BYTE_SIZE_IN_BITS, 'big')
-            print("default", username + ":\n", self._default_private.private_numbers().x, "\n", public.public_numbers().y)
-            return res
+            return public.public_numbers().y.to_bytes(public.key_size // BYTE_SIZE_IN_BITS, 'big')
 
     def create_key_for_new_user_and_load(self, username) -> bytes:
         """
@@ -55,57 +53,50 @@ class EncryptionManager:
         with open(filename, 'wb') as key_file:
             key_file.write(pem_private_key)
 
-        res = public.public_numbers().y.to_bytes(public.key_size // BYTE_SIZE_IN_BITS, 'big')
-        return res
-
-    @staticmethod
-    def delete_key(username):
-        filename = username + EncryptionManager.PRIVATE_FILE_EXTENSION
-        if path.exists(filename):
-            remove(filename)
+        return public.public_numbers().y.to_bytes(public.key_size // BYTE_SIZE_IN_BITS, 'big')
 
     def end_to_end_decrypt(self, encrypted_message: bytes, source: str) -> str:
-        source_public_bytes, encrypted_message = (encrypted_message[:DH_KEY_LENGTH // BYTE_SIZE_IN_BITS],
-                                                  encrypted_message[DH_KEY_LENGTH // BYTE_SIZE_IN_BITS:])
+        # split the source public key and the message
+        source_public_bytes, encrypted_message = (
+            encrypted_message[:DH_KEY_LENGTH // BYTE_SIZE_IN_BITS],
+            encrypted_message[DH_KEY_LENGTH // BYTE_SIZE_IN_BITS:])
 
-        print("SET THE LAST PUBLIC KEY OF", source, "TO", int.from_bytes(source_public_bytes, 'big'))
+        # update the last source public key
         self._db.set_last_other_public_key(source, source_public_bytes)
 
+        # get the last private key that used to encrypt
         last_private_bytes = self._db.get_last_private_key(source)
 
+        # switch to the right public key
+        # (if there is no public key that saved - user the default one)
         if last_private_bytes:
             last_private_key = serialization.load_der_private_key(
-                last_private_bytes,
-                password=None,
-            )
+                last_private_bytes, password=None)
         else:
             last_private_key = self._default_private
 
         # convert the peer public key bytes into public key object
-        source_public_key = dh.DHPublicNumbers(int.from_bytes(source_public_bytes, 'big'),
-                                               self._dh_parameters.parameter_numbers()).public_key()
+        source_public_key = dh.DHPublicNumbers(
+            int.from_bytes(source_public_bytes, 'big'),
+            self._dh_parameters.parameter_numbers()).public_key()
 
         # deffie-hellman key exchange
         shared_key = last_private_key.exchange(source_public_key)
 
         # key derivation function to reduce AES shared key
-        aes_key = HKDF(algorithm=hashes.SHA256(), length=AES_KEY_LENGTH, salt=None,
-                       info=b"AES key derivation").derive(shared_key)
+        aes_key = HKDF(algorithm=hashes.SHA256(), length=AES_KEY_LENGTH,
+                       salt=None, info=b"AES key derivation").derive(shared_key)
 
         return EncryptionManager._decrypt_data(aes_key, encrypted_message).decode()
 
-    def end_to_end_encrypt(self, message: str, destination: str, default_public=None) -> bytes:
+    def end_to_end_encrypt(self, message: str, destination: str,
+                           destination_public: bytes) -> bytes:
         private, public = self._generate_keys_pair()
 
-        # set the peer public key into - the default public key that the server save (if it is the first message)
-        # or the last public key that saved in the database
-        destination_public = default_public if default_public else self._db.get_last_other_public_key(destination)
-        # print(default_public is None)
-        # print("THE LAST PUBLIC KEY OF", destination, "IS", int.from_bytes(destination_public, 'big'))
-
         # convert the peer public-key from bytes into DHPublicKey
-        destination_public = dh.DHPublicNumbers(int.from_bytes(destination_public, 'big'),
-                                                self._dh_parameters.parameter_numbers()).public_key()
+        destination_public = dh.DHPublicNumbers(
+            int.from_bytes(destination_public, 'big'),
+            self._dh_parameters.parameter_numbers()).public_key()
 
         # convert the private key into bytes using the DER encoding
         private_bytes = private.private_bytes(
@@ -115,8 +106,7 @@ class EncryptionManager:
         )
 
         # update the last private key that use to encrypt in this conversation
-        self._db.set_last_private_key(
-            destination, private_bytes)
+        self._db.set_last_private_key(destination, private_bytes)
 
         # deffie-hellman key exchange
         shared_key = private.exchange(destination_public)
@@ -126,7 +116,8 @@ class EncryptionManager:
                        info=b"AES key derivation").derive(shared_key)
 
         # get the public key bytes (256 bytes length)
-        public_bytes = public.public_numbers().y.to_bytes(DH_KEY_LENGTH // BYTE_SIZE_IN_BITS, 'big')
+        public_bytes = public.public_numbers().y.to_bytes(
+            DH_KEY_LENGTH // BYTE_SIZE_IN_BITS, 'big')
 
         return public_bytes + EncryptionManager._encrypt_data(aes_key, message.encode())
 

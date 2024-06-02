@@ -4,7 +4,6 @@ from ResponseHandler import ResponseHandler
 from DataBaseManager import DataBaseManager
 from MenuFactory import MenuFactory
 from threading import Lock
-from LoginMenu import LoginMenu
 from EncryptionManager import EncryptionManager
 
 
@@ -45,5 +44,4 @@ class ClientManager:
         while True:
             self._menu_lock.acquire()  # lock the menu
             self.menu.print_menu()
-            res = self.menu.make_choice(self.menu.get_choice())
-            self.menu = res
+            self.menu = self.menu.make_choice(self.menu.get_choice())
