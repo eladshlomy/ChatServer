@@ -10,7 +10,7 @@ class ClientMenu(ABC):  # abstract class
     class Option(Enum):
         pass
 
-    def __init__(self, client_communicator: ClientCommunicator, encryption_manager: פרןמ):
+    def __init__(self, client_communicator: ClientCommunicator, encryption_manager: EncryptionManager):
         self._client_communicator = client_communicator
         self._encryption_manager = encryption_manager
 
